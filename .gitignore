@@ -1,0 +1,24 @@
+# Node modules (both client and server)
+client/node_modules/
+server/node_modules/
+
+# Build outputs
+client/dist/
+server/dist/
+
+# Logs
+*.log
+
+# Environment variables
+client/.env
+server/.env
+
+# TypeScript build output
+*.tsbuildinfo
+
+# Optional: OS-specific or editor files
+.DS_Store
+Thumbs.db
+.vscode/
+
+todo.md
