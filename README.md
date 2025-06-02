@@ -15,7 +15,7 @@ A full-stack authentication system built with Next.js, Node.js, and MongoDB. Fea
 1. Clone the repository:
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/jackkslash/cromwell-tech-test.git
 cd cromwell-tech-test
 ```
 
@@ -128,24 +128,4 @@ The frontend will run on http://localhost:3001
 ```bash
 cd server
 npm test
-```
-
-## 📁 Project Structure
-
-```
-├── client/                 # Frontend Next.js application
-│   ├── src/
-│   │   ├── app/           # Next.js app directory
-│   │   ├── store/         # Redux store and slices
-│   │   └── validation/    # Zod schemas
-│   └── public/            # Static files
-│
-└── server/                # Backend Express application
-    ├── src/
-    │   ├── controllers/   # Route controllers
-    │   ├── middleware/    # Custom middleware
-    │   ├── models/        # Mongoose models
-    │   ├── routes/        # API routes
-    │   └── validation/    # Zod schemas
-    └── tests/             # Test files
 ```
