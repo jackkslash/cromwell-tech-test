@@ -81,6 +81,15 @@ npm run dev
 
 The frontend will run on http://localhost:3001
 
+## 🧪 Testing
+
+### Backend Tests
+
+```bash
+cd server
+npm test
+```
+
 ## 🛠️ Tech Stack
 
 ### Frontend
@@ -120,12 +129,3 @@ The frontend will run on http://localhost:3001
 - Input validation
 - Protected API routes
 - CORS configuration
-
-## 🧪 Testing
-
-### Backend Tests
-
-```bash
-cd server
-npm test
-```
