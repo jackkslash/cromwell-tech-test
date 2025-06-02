@@ -9,8 +9,8 @@ interface AuthState {
 
 // Get initial state from localStorage
 const getInitialState = (): AuthState => {
-  if (typeof window !== 'undefined') {
-    const token = localStorage.getItem('token');
+  if (typeof window !== "undefined") {
+    const token = localStorage.getItem("token");
     return {
       user: null,
       token: token,
@@ -28,12 +28,59 @@ const getInitialState = (): AuthState => {
 
 const initialState: AuthState = getInitialState();
 
-// Async login thunk
+// Get server URL from env (Next.js style)
+const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL;
+
+// Helper function to handle API calls with token refresh
+const fetchWithRefresh = async (url: string, options: RequestInit = {}) => {
+  const response = await fetch(url, {
+    ...options,
+    credentials: "include",
+    headers: {
+      ...options.headers,
+      "Content-Type": "application/json",
+    },
+  });
+
+  if (response.status === 401) {
+    // Try to refresh the token
+    const refreshResponse = await fetch(
+      SERVER_URL + "/user/refresh",
+      {
+        method: "GET",
+        credentials: "include",
+      }
+    );
+
+    if (refreshResponse.ok) {
+      const { token } = await refreshResponse.json();
+      localStorage.setItem("token", token);
+
+      // Retry the original request with new token
+      return fetch(url, {
+        ...options,
+        credentials: "include",
+        headers: {
+          ...options.headers,
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+    } else {
+      // If refresh fails, clear token and throw error
+      localStorage.removeItem("token");
+      throw new Error("Session expired. Please login again.");
+    }
+  }
+
+  return response;
+};
+
 export const login = createAsyncThunk(
   "user/login",
   async (payload: { email: string; password: string }, thunkAPI) => {
     try {
-      const res = await fetch("http://localhost:3000/user/login", {
+      const res = await fetch(SERVER_URL + "/user/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -41,8 +88,7 @@ export const login = createAsyncThunk(
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Login failed");
-      // Store token in localStorage
-      localStorage.setItem('token', data.token);
+      localStorage.setItem("token", data.token);
       return data;
     } catch (err: any) {
       return thunkAPI.rejectWithValue(err.message);
@@ -57,7 +103,7 @@ export const registerUser = createAsyncThunk(
     thunkAPI
   ) => {
     try {
-      const res = await fetch("http://localhost:3000/user/register", {
+      const res = await fetch(SERVER_URL + "/user/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -65,8 +111,7 @@ export const registerUser = createAsyncThunk(
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Registration failed");
-      // Store token in localStorage
-      localStorage.setItem('token', data.token);
+      localStorage.setItem("token", data.token);
       return data;
     } catch (err: any) {
       return thunkAPI.rejectWithValue(err.message);
@@ -81,7 +126,7 @@ export const getUser = createAsyncThunk(
       const token = thunkAPI.getState().auth.token;
       if (!token) throw new Error("No token available");
 
-      const res = await fetch("http://localhost:3000/user/", {
+      const res = await fetchWithRefresh(SERVER_URL + "/user/", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -90,6 +135,9 @@ export const getUser = createAsyncThunk(
       if (!res.ok) throw new Error(data.message || "Failed to fetch user data");
       return data;
     } catch (err: any) {
+      if (err.message === "Session expired. Please login again.") {
+        window.location.href = "/login";
+      }
       return thunkAPI.rejectWithValue(err.message);
     }
   }
@@ -99,13 +147,12 @@ export const logoutUser = createAsyncThunk(
   "user/logout",
   async (_, thunkAPI) => {
     try {
-      const res = await fetch("http://localhost:3000/user/logout", {
+      const res = await fetch(SERVER_URL + "/user/logout", {
         method: "POST",
         credentials: "include",
       });
       if (!res.ok) throw new Error("Logout failed");
-      // Clear token from localStorage
-      localStorage.removeItem('token');
+      localStorage.removeItem("token");
       return null;
     } catch (err: any) {
       return thunkAPI.rejectWithValue(err.message);

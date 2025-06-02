@@ -10,8 +10,8 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN, // frontend URL allowed
-    credentials: true, // if you use cookies or auth headers
+    origin: process.env.CORS_ORIGIN,
+    credentials: true,
   })
 );
 app.use("/user", userRoutes);

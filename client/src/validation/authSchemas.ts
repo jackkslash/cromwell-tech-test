@@ -1,19 +1,18 @@
 import { z } from "zod";
 
+export const loginSchema = z.object({
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(1, "Password is required"),
+});
+
+export type LoginSchema = z.infer<typeof loginSchema>;
+
 export const registerSchema = z
   .object({
-    name: z.string({
-      required_error: "Name is required",
-    }),
-    email: z
-      .string({
-        required_error: "Email is required",
-      })
-      .email("Invalid email address"),
+    name: z.string().min(1, "Name is required"),
+    email: z.string().email("Invalid email address"),
     password: z
-      .string({
-        required_error: "Password is required",
-      })
+      .string()
       .min(8, "Password must be at least 8 characters")
       .refine((val) => /[A-Z]/.test(val), {
         message: "Password must contain at least one uppercase letter",
@@ -27,24 +26,11 @@ export const registerSchema = z
       .refine((val) => /[!@#$%^&*(),.?":{}|<>]/.test(val), {
         message: "Password must contain at least one special character",
       }),
-    confirmPassword: z.string({
-      required_error: "Confirm password is required",
-    }),
+    confirmPassword: z.string(),
   })
   .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords do not match",
+    message: "Passwords don't match",
     path: ["confirmPassword"],
   });
 
-export const loginSchema = z.object({
-  email: z
-    .string({
-      required_error: "Invalid email address",
-    })
-    .email("Invalid email address"),
-  password: z
-    .string({
-      required_error: "Password is required",
-    })
-    .nonempty("Password is required"),
-});
+export type RegisterSchema = z.infer<typeof registerSchema>;

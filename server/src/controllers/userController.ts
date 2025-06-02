@@ -26,16 +26,14 @@ const sanitizeUser = (user: IUser) => ({
 
 // Helper to generate JWT
 const generateToken = (id: string) => {
-  // Secrets are checked at startup, so no need to check here
   return jwt.sign({ id }, process.env.JWT_SECRET as string, {
-    expiresIn: "1h",
+    expiresIn: "10s",
     algorithm: "HS256",
   });
 };
 
 // Helper to generate refresh token
 const generateRefreshToken = (id: string) => {
-  // Secrets are checked at startup, so no need to check here
   return jwt.sign({ id }, process.env.JWT_REFRESH_SECRET as string, {
     expiresIn: "7d",
     algorithm: "HS256",
@@ -46,8 +44,6 @@ export const register: RequestHandler = async (req, res) => {
   const { name, email, password } = req.body as AuthRequestBody;
 
   try {
-    // Zod already validated input, so no need for manual checks
-
     const existing = await User.findOne({ email });
     if (existing) {
       res.status(400).json({ message: "User already exists" });
@@ -178,11 +174,9 @@ export const refreshToken: RequestHandler = async (req, res) => {
       });
       return;
     }
-    // Generate new tokens
     const newAccessToken = generateToken(user._id.toString());
     const newRefreshToken = generateRefreshToken(user._id.toString());
 
-    // Set secure refresh token cookie
     res.cookie("refreshToken", newRefreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
@@ -190,7 +184,6 @@ export const refreshToken: RequestHandler = async (req, res) => {
       maxAge: SEVEN_DAYS_MS,
     });
 
-    // Return success response
     res.status(200).json({
       success: true,
       message: "Tokens refreshed successfully",
@@ -200,7 +193,6 @@ export const refreshToken: RequestHandler = async (req, res) => {
   } catch (error) {
     console.error("Refresh token error:", error);
 
-    // Clear potentially corrupted refresh token
     res.clearCookie("refreshToken", {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
